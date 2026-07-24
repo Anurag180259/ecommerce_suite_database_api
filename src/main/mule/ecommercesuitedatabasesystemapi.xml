@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd  http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+    <http:listener-config name="ecommercesuitedatabasesystemapi-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8083" />
+    </http:listener-config>
+    <apikit:config name="ecommercesuitedatabasesystemapi-config" api="resource::297e1185-2a7e-4734-9d69-effb0bb9fbe9:ecommercesuitedatabasesystemapi:1.0.18:raml:zip:ecommercesuitedatabasesystemapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <db:config name="Database_Config" doc:name="Database Config" doc:id="5a1a8061-a3f9-457f-ad8f-0ca6903544b7">
+        <db:my-sql-connection host="localhost" port="3306" user="root" password="Anurag@1802" database="ecommerce_suite" />
+    </db:config>
+    <flow name="ecommercesuitedatabasesystemapi-main">
+        <http:listener config-ref="ecommercesuitedatabasesystemapi-httpListenerConfig" path="/database/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="ecommercesuitedatabasesystemapi-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="ecommercesuitedatabasesystemapi-console">
+        <http:listener config-ref="ecommercesuitedatabasesystemapi-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="ecommercesuitedatabasesystemapi-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="get:\users\(userId):ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" message="get:\users\(userId):ecommercesuitedatabasesystemapi-config" />
+    </flow>
+    <flow name="post:\stores:application\json:ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" message="POST/process/stores called database api. adding new store to storeData table" />
+        <db:insert doc:name="addNewStore" doc:id="8f00dd78-b025-4843-ad2b-ca3a903d43e8" config-ref="Database_Config">
+            <db:sql><![CDATA[insert into storeData(storeName, storeId, accountHolderName, gstin, accountNumber, userId)
+values(:storeName, :storeId, :name, :gstin, :accNumber, :userId)]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	storeName:payload.storeName,
+	storeId:payload.storeId,
+	name:payload.accountHolderName,
+	gstin:payload.gstin,
+	accNumber:payload.accountNumber,
+	userId:payload.userId
+}]]]></db:input-parameters>
+        </db:insert>
+        <error-handler>
+            <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b4a670ff-f767-491f-9a49-98b4b892c65f" type="DB:QUERY_EXECUTION" when="#[error.description contains &quot;storeName&quot;]">
+                <set-variable value="409" doc:name="httpStatus" doc:id="3e2ce298-f03a-4104-b264-449c4252d882" variableName="httpStatus" />
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="post:\users:application\json:ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" message="POST/process/users called database api. Adding new registration in database." />
+        <db:insert doc:name="addUser" doc:id="c8d38d25-d0f4-4c0a-93e4-ea03cec0be42" config-ref="Database_Config">
+            <db:sql><![CDATA[insert into users(userId, firstName, lastName, email, phoneNo, city, roles, pass)
+values(:userId, :firstName, :lastName, :email, :phoneNo, :city, :role, :password);]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	userId:payload.userId,
+	firstName:payload.firstName,
+	lastName:payload.lastName,
+	email:payload.email,
+	phoneNo:payload.phoneNo,
+	city:payload.city,
+	role:payload.role,
+	password:payload.password
+}]]]></db:input-parameters>
+        </db:insert>
+    </flow>
+    <flow name="get:\users:ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" message="Fetching user data by email." />
+        <db:select doc:name="getUserByEmail" doc:id="4e423aad-a5ad-4e7e-9ce5-f99d416c2e95" config-ref="Database_Config">
+            <db:sql><![CDATA[select * from users where email=:email;]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	email:attributes.queryParams.email
+}]]]></db:input-parameters>
+        </db:select>
+        <ee:transform doc:name="Transform Message" doc:id="00f0745c-cfff-4817-bb07-a057c9cc5f77">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="patch:\stores\(storeId):application\json:ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" message="Updating store data by storeId" />
+        <db:update doc:name="Update" doc:id="54db1930-47b9-4671-9686-2acc84d66a87" config-ref="Database_Config">
+            <db:sql><![CDATA[call updateStoreData(:storeId, :storeName, :accountNumber, :verificationStatus, :gstin, :accountHolderName);]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	storeId:attributes.uriParams.storeId,
+	storeName:payload.storeName,
+	accountNumber:payload.accountNumber,
+	verificationStatus:payload.verificationStatus,
+	gstin:payload.gstin,
+	accountHolderName:payload.accountHolderName
+}]]]></db:input-parameters>
+        </db:update>
+    </flow>
+    <flow name="get:\users\getByRole:ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" doc:name="Logger" doc:id="111cecd6-c0b4-4ef2-bfe5-85f928b643f0" message="#[&quot;Request to get all the users by role received Role=&quot;++ attributes.queryParams.role]" />
+        <db:select doc:name="getUsersByRole" doc:id="f9cc5e83-3fd9-44cc-8c4c-5ac80356edc0" config-ref="Database_Config">
+            <db:sql><![CDATA[select * from users where roles=:role;]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	role:attributes.queryParams.role
+}]]]></db:input-parameters>
+        </db:select>
+        <ee:transform doc:name="Transform Message" doc:id="342882a4-6db1-4b13-8b9f-e346501d106b">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\stores\(storeId):ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" message="Getting store details by storeId." />
+        <db:select doc:name="Select" doc:id="386bbf51-b05d-4365-a640-c59f7dd4bd87" config-ref="Database_Config">
+            <db:sql><![CDATA[select * from storeData where storeId=:storeId]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	storeId:attributes.uriParams.storeId
+}]]]></db:input-parameters>
+        </db:select>
+        <ee:transform doc:name="Transform Message" doc:id="fe2ad91c-621b-46fe-943f-0167f9df8576">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\products:application\json:ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" message="Adding new product to products table" />
+        <db:insert doc:name="Insert" doc:id="c0272fa7-d661-4050-bc11-9be9006ae64b" config-ref="Database_Config">
+            <db:sql><![CDATA[insert into products(productName, productId, storeId, brand, stock, price, category, subCategory, details)
+values(:productName, :productId, :storeId, :brand, :stock, :price, :category, :subCategory, :details);]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	productName: payload.productName,
+	subCategory: payload.subCategory,
+	productId: payload.productId,
+	price: payload.price,
+	details: payload.details,
+	storeId: payload.storeId,
+	stock: payload.stock,
+	category: payload.category,
+	brand: payload.brand
+}]]]></db:input-parameters>
+        </db:insert>
+    </flow>
+    <flow name="get:\products:ecommercesuitedatabasesystemapi-config">
+		<logger level="INFO" message="get:\products:ecommercesuitedatabasesystemapi-config" />
+    </flow>
+    <flow name="get:\products\(productId):ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" message="Getting products by the product Id" />
+		<db:select doc:name="Select" doc:id="06ad4355-347f-4ad1-9c83-b8f12f5ea2f0" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from products where productId=:productId;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	productId:attributes.uriParams.productId
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="618099ff-7c7c-43a3-9595-80780350bb71" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+    </flow>
+</mule>
