@@ -92,5 +92,26 @@ and (p_minRatings is null or p.rating>=p_minRatings);
 END//
 delimiter ;
 
+create table orders
+(orderId varchar(10) primary key,
+orderDate date not null,
+orderStatus varchar(10) not null,
+totalOrderValue double not null,
+userId varchar(10) not null,
+deliveryPincode varchar(6) not null,
+expDeliveryDate date not null,
+transactionId varchar(50) not null,
+paymentStatus varchar(10) not null,
+foreign key (userId) references users(userId));
+
+create table orderItems
+(orderItemId varchar(10) primary key,
+orderId varchar(10) not null,
+productId varchar(10) not null,
+priceAtPurchase double not null,
+quantity integer not null,
+foreign key (orderId) references orders(orderId),
+foreign key (productId) references products(productId));
+
 
 
