@@ -3,7 +3,7 @@
     <http:listener-config name="ecommercesuitedatabasesystemapi-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8083" />
     </http:listener-config>
-    <apikit:config name="ecommercesuitedatabasesystemapi-config" api="resource::297e1185-2a7e-4734-9d69-effb0bb9fbe9:ecommercesuitedatabasesystemapi:1.0.18:raml:zip:ecommercesuitedatabasesystemapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <apikit:config name="ecommercesuitedatabasesystemapi-config" api="resource::297e1185-2a7e-4734-9d69-effb0bb9fbe9:ecommercesuitedatabasesystemapi:1.0.21:raml:zip:ecommercesuitedatabasesystemapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
     <db:config name="Database_Config" doc:name="Database Config" doc:id="5a1a8061-a3f9-457f-ad8f-0ca6903544b7">
         <db:my-sql-connection host="localhost" port="3306" user="root" password="Anurag@1802" database="ecommerce_suite" />
     </db:config>
@@ -145,7 +145,7 @@ values(:storeName, :storeId, :name, :gstin, :accNumber, :userId)]]></db:sql>
         </db:insert>
         <error-handler>
             <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b4a670ff-f767-491f-9a49-98b4b892c65f" type="DB:QUERY_EXECUTION" when="#[error.description contains &quot;storeName&quot;]">
-                <set-variable value="409" doc:name="httpStatus" doc:id="3e2ce298-f03a-4104-b264-449c4252d882" variableName="httpStatus" />
+                <set-variable value="409" doc:name="httpStatus 409" doc:id="3e2ce298-f03a-4104-b264-449c4252d882" variableName="httpStatus" />
             </on-error-propagate>
         </error-handler>
     </flow>
@@ -230,6 +230,16 @@ output application/json
 payload]]></ee:set-payload>
             </ee:message>
         </ee:transform>
+		<choice doc:name="Choice" doc:id="742775f0-0642-4ee0-859f-ac90e2fd3f50" >
+			<when expression="#[isEmpty(payload)]" >
+				<raise-error doc:name="APP:NOT_FOUND" doc:id="2864713f-3cdb-4c44-abbb-84e772c6052d" type="APP:NOT_FOUND" />
+			</when>
+		</choice>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propogate" doc:id="c393d5c4-99ad-4ef9-befe-7dfdea56981c" type="APP:NOT_FOUND" >
+				<set-variable value="404" doc:name="httpStatus 404" doc:id="cb5cf18c-bbcb-4096-a817-7c0f4ac65e78" variableName="httpStatus" />
+			</on-error-propagate>
+		</error-handler>
     </flow>
     <flow name="post:\products:application\json:ecommercesuitedatabasesystemapi-config">
         <logger level="INFO" message="Adding new product to products table" />
@@ -250,17 +260,91 @@ values(:productName, :productId, :storeId, :brand, :stock, :price, :category, :s
         </db:insert>
     </flow>
     <flow name="get:\products:ecommercesuitedatabasesystemapi-config">
-		<logger level="INFO" message="get:\products:ecommercesuitedatabasesystemapi-config" />
+        <logger level="INFO" message="#[{&#xA; message:&quot;Getting product data by filters&quot;&#xA;}]" />
+        <db:select doc:name="Select" doc:id="7e3d496e-20fc-4976-8434-ff8f8e0c2627" config-ref="Database_Config">
+            <db:sql><![CDATA[call filterProducts(:storeId, :brand, :category, :subCategory, :maxPrice, :minPrice, :inStock, :notInStock, :minRatings, :storeName);]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	storeId:attributes.queryParams.storeId,
+	brand:attributes.queryParams.brand,
+	category:attributes.queryParams.category,
+	subCategory:attributes.queryParams.subCategory,
+	maxPrice:attributes.queryParams.maxPrice,
+	minPrice:attributes.queryParams.minPrice,
+	inStock:if(attributes.queryParams.inStock == "true") "yes" else null,
+	notInStock:if(attributes.queryParams.inStock == "false") "yes" else null,
+	minRatings:attributes.queryParams.minRatings,
+	storeName:attributes.queryParams.storeName
+}]]]></db:input-parameters>
+        </db:select>
+        <ee:transform doc:name="Transform Message" doc:id="ac67bd95-9eea-42ef-a7ce-c2687cf2350a">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
     </flow>
     <flow name="get:\products\(productId):ecommercesuitedatabasesystemapi-config">
         <logger level="INFO" message="Getting products by the product Id" />
-		<db:select doc:name="Select" doc:id="06ad4355-347f-4ad1-9c83-b8f12f5ea2f0" config-ref="Database_Config">
-			<db:sql ><![CDATA[select * from products where productId=:productId;]]></db:sql>
+        <db:select doc:name="Select" doc:id="06ad4355-347f-4ad1-9c83-b8f12f5ea2f0" config-ref="Database_Config">
+            <db:sql><![CDATA[select * from products where productId=:productId;]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	productId:attributes.uriParams.productId
+}]]]></db:input-parameters>
+        </db:select>
+        <ee:transform doc:name="Transform Message" doc:id="abe1ea13-ef07-4c2f-9288-99e9839d8226">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <choice doc:name="Choice" doc:id="1b9828e7-f5fc-4445-b2c1-789416a3f128">
+            <when expression="#[isEmpty(payload)]">
+                <raise-error doc:name="APP:NOT_FOUND" doc:id="7c700f31-225a-4e28-ac9f-a7f8cb160be0" type="APP:NOT_FOUND" />
+            </when>
+        </choice>
+        <error-handler>
+            <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propogate" doc:id="4226c822-12b2-4ded-92fd-2306458b5f68" type="APP:NOT_FOUND">
+                <set-variable value="404" doc:name="httpStatus 404" doc:id="4437f333-f84b-4261-a416-557a7bd9e756" variableName="httpStatus" />
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="delete:\products\(productId):ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" message='#["Delete request for productId:" ++ attributes.uriParams.productId ++ " received. Calling database api to perform deletion"]' />
+		<db:delete doc:name="Delete" doc:id="8d34fd18-206b-49e3-98c8-27e92c4babd7" config-ref="Database_Config">
+			<db:sql ><![CDATA[delete from products where productId=:productId]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
 	productId:attributes.uriParams.productId
 }]]]></db:input-parameters>
-		</db:select>
-		<ee:transform doc:name="Transform Message" doc:id="618099ff-7c7c-43a3-9595-80780350bb71" >
+		</db:delete>
+		<ee:transform doc:name="Transform Message" doc:id="54abff6b-da74-4c00-a876-f3d7f39bf3aa" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+    </flow>
+    <flow name="patch:\products\(productId):application\json:ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" message='#["Received update request for productId:" ++ attributes.uriParams.productId]' />
+		<db:update doc:name="Update" doc:id="864b3d1d-1f7a-49ac-a7f6-14eef78227d3" config-ref="Database_Config">
+			<db:sql ><![CDATA[call updateProducts(:productId, :productName, :brand, :price, :category, :subCategory, :details, :quantity);]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	productId:attributes.uriParams.productId,
+	subCategory:payload.subCategory,
+	quantity:payload.quantity,
+	price:payload.price,
+	details:payload.details,
+	category:payload.category,
+	brand:payload.brand,
+	productName:payload.productName
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="b80ef401-2c51-43e7-a804-5965462b47f1" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json

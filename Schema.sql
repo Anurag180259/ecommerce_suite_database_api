@@ -1,3 +1,4 @@
+create schema ecommerce_suite;
 use ecommerce_suite;
 create table users
 	(userId varchar(10) primary key,
@@ -11,7 +12,7 @@ create table users
     memType varchar(20) default "free",
     memExpiryDate date);
 
-select * from ecommerce_suite.users;
+
 
 create table storeData
 	(storeName varchar(50) unique,
@@ -23,9 +24,7 @@ create table storeData
     userId varchar(10),
     foreign key (userId) references users(userId));
 
-select * from storeData;
 
-truncate table storeData;
 
 delimiter //
 
@@ -48,7 +47,7 @@ BEGIN
     END//
     
 delimiter ;
-select * from storeData;
+
 
 create table products
 	(productName varchar(50) not null,
@@ -63,7 +62,6 @@ create table products
     noOfReviews int default 0,
     details varchar(255) not null,
     foreign key (storeId) references storeData(storeId));
-    truncate table products;
 
 delimiter //
 create procedure filterProducts(
@@ -93,4 +91,6 @@ and (p_notInStock is null or p.stock=0)
 and (p_minRatings is null or p.rating>=p_minRatings);
 END//
 delimiter ;
+
+
 

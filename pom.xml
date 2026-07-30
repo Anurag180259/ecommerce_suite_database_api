@@ -14,7 +14,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
 		<app.runtime>4.9.0</app.runtime>
-		<mule.maven.plugin.version>4.3.0</mule.maven.plugin.version>
+		<mule.maven.plugin.version>4.7.0</mule.maven.plugin.version>
 	</properties>
 
 	<build>
@@ -36,6 +36,7 @@
 							<artifactId>mysql-connector-java</artifactId>
 						</sharedLibrary>
 					</sharedLibraries>
+					<classifier>mule-application</classifier>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -74,7 +75,7 @@
 		<dependency>
 			<groupId>297e1185-2a7e-4734-9d69-effb0bb9fbe9</groupId>
 			<artifactId>ecommercesuitedatabasesystemapi</artifactId>
-			<version>1.0.18</version>
+			<version>1.0.21</version>
 			<classifier>raml</classifier>
 			<type>zip</type>
 		</dependency>
