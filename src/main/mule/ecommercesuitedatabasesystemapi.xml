@@ -3,7 +3,7 @@
     <http:listener-config name="ecommercesuitedatabasesystemapi-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8083" />
     </http:listener-config>
-    <apikit:config name="ecommercesuitedatabasesystemapi-config" api="resource::297e1185-2a7e-4734-9d69-effb0bb9fbe9:ecommercesuitedatabasesystemapi:1.0.21:raml:zip:ecommercesuitedatabasesystemapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <apikit:config name="ecommercesuitedatabasesystemapi-config" api="resource::297e1185-2a7e-4734-9d69-effb0bb9fbe9:ecommercesuitedatabasesystemapi:1.0.25:raml:zip:ecommercesuitedatabasesystemapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
     <db:config name="Database_Config" doc:name="Database Config" doc:id="5a1a8061-a3f9-457f-ad8f-0ca6903544b7">
         <db:my-sql-connection host="localhost" port="3306" user="root" password="Anurag@1802" database="ecommerce_suite" />
     </db:config>
@@ -230,16 +230,16 @@ output application/json
 payload]]></ee:set-payload>
             </ee:message>
         </ee:transform>
-		<choice doc:name="Choice" doc:id="742775f0-0642-4ee0-859f-ac90e2fd3f50" >
-			<when expression="#[isEmpty(payload)]" >
-				<raise-error doc:name="APP:NOT_FOUND" doc:id="2864713f-3cdb-4c44-abbb-84e772c6052d" type="APP:NOT_FOUND" />
-			</when>
-		</choice>
-		<error-handler >
-			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propogate" doc:id="c393d5c4-99ad-4ef9-befe-7dfdea56981c" type="APP:NOT_FOUND" >
-				<set-variable value="404" doc:name="httpStatus 404" doc:id="cb5cf18c-bbcb-4096-a817-7c0f4ac65e78" variableName="httpStatus" />
-			</on-error-propagate>
-		</error-handler>
+        <choice doc:name="Choice" doc:id="742775f0-0642-4ee0-859f-ac90e2fd3f50">
+            <when expression="#[isEmpty(payload)]">
+                <raise-error doc:name="APP:NOT_FOUND" doc:id="2864713f-3cdb-4c44-abbb-84e772c6052d" type="APP:NOT_FOUND" />
+            </when>
+        </choice>
+        <error-handler>
+            <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propogate" doc:id="c393d5c4-99ad-4ef9-befe-7dfdea56981c" type="APP:NOT_FOUND">
+                <set-variable value="404" doc:name="httpStatus 404" doc:id="cb5cf18c-bbcb-4096-a817-7c0f4ac65e78" variableName="httpStatus" />
+            </on-error-propagate>
+        </error-handler>
     </flow>
     <flow name="post:\products:application\json:ecommercesuitedatabasesystemapi-config">
         <logger level="INFO" message="Adding new product to products table" />
@@ -313,27 +313,27 @@ payload]]></ee:set-payload>
         </error-handler>
     </flow>
     <flow name="delete:\products\(productId):ecommercesuitedatabasesystemapi-config">
-        <logger level="INFO" message='#["Delete request for productId:" ++ attributes.uriParams.productId ++ " received. Calling database api to perform deletion"]' />
-		<db:delete doc:name="Delete" doc:id="8d34fd18-206b-49e3-98c8-27e92c4babd7" config-ref="Database_Config">
-			<db:sql ><![CDATA[delete from products where productId=:productId]]></db:sql>
-			<db:input-parameters ><![CDATA[#[{
+        <logger level="INFO" message="#[&quot;Delete request for productId:&quot; ++ attributes.uriParams.productId ++ &quot; received. Calling database api to perform deletion&quot;]" />
+        <db:delete doc:name="Delete" doc:id="8d34fd18-206b-49e3-98c8-27e92c4babd7" config-ref="Database_Config">
+            <db:sql><![CDATA[delete from products where productId=:productId]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
 	productId:attributes.uriParams.productId
 }]]]></db:input-parameters>
-		</db:delete>
-		<ee:transform doc:name="Transform Message" doc:id="54abff6b-da74-4c00-a876-f3d7f39bf3aa" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
+        </db:delete>
+        <ee:transform doc:name="Transform Message" doc:id="54abff6b-da74-4c00-a876-f3d7f39bf3aa">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 payload]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
+            </ee:message>
+        </ee:transform>
     </flow>
     <flow name="patch:\products\(productId):application\json:ecommercesuitedatabasesystemapi-config">
-        <logger level="INFO" message='#["Received update request for productId:" ++ attributes.uriParams.productId]' />
-		<db:update doc:name="Update" doc:id="864b3d1d-1f7a-49ac-a7f6-14eef78227d3" config-ref="Database_Config">
-			<db:sql ><![CDATA[call updateProducts(:productId, :productName, :brand, :price, :category, :subCategory, :details, :quantity);]]></db:sql>
-			<db:input-parameters ><![CDATA[#[{
+        <logger level="INFO" message="#[&quot;Received update request for productId:&quot; ++ attributes.uriParams.productId]" />
+        <db:update doc:name="Update" doc:id="864b3d1d-1f7a-49ac-a7f6-14eef78227d3" config-ref="Database_Config">
+            <db:sql><![CDATA[call updateProducts(:productId, :productName, :brand, :price, :category, :subCategory, :details, :quantity);]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
 	productId:attributes.uriParams.productId,
 	subCategory:payload.subCategory,
 	quantity:payload.quantity,
@@ -343,8 +343,38 @@ payload]]></ee:set-payload>
 	brand:payload.brand,
 	productName:payload.productName
 }]]]></db:input-parameters>
-		</db:update>
-		<ee:transform doc:name="Transform Message" doc:id="b80ef401-2c51-43e7-a804-5965462b47f1" >
+        </db:update>
+        <ee:transform doc:name="Transform Message" doc:id="b80ef401-2c51-43e7-a804-5965462b47f1">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="delete:\carts:ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" doc:name="Logger" doc:id="8c0d3d10-d082-4144-a297-76c1ab05d672" message="#[&quot;Request received to delete cart items by userId/cartItemId&quot;]" />
+        <db:delete doc:name="Delete" doc:id="7715dfee-56f6-48bc-a3c5-aa963035f523">
+            <db:sql><![CDATA[call deleteCartByFilters(:userId, :cartItemId);]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	userId: attributes.queryParams.userId,
+	cartItemId: attributes.queryParams.cartItemId
+}]]]></db:input-parameters>
+        </db:delete>
+    </flow>
+    <flow name="patch:\carts\(cartItemId):application\json:ecommercesuitedatabasesystemapi-config">
+		<logger level="INFO" doc:name="Logger" doc:id="4a84dd5b-ba1a-42ef-a429-0a443ea83188" message="#[&quot;Request received to increase/decrease cart quantity for cartItemId:&quot; ++ attributes.uriParams.cartItemId]" />
+        <db:update doc:name="Update" doc:id="ab971e8a-2476-40a0-a457-cde9b99a9792" config-ref="Database_Config">
+            <db:sql><![CDATA[update carts
+set quantity=quantity + :quantity
+where cartItemId=:cartItemId;]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	quantity: payload.quantity,
+	cartItemId: attributes.uriParams.cartItemId
+}]]]></db:input-parameters>
+        </db:update>
+		<ee:transform doc:name="Transform Message" doc:id="bcdd4918-b0f9-4bb5-b46c-e834ba6fb6ec" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
@@ -352,5 +382,63 @@ output application/json
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+    </flow>
+    <flow name="get:\carts:ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" doc:name="Logger" doc:id="2c2525b2-c92c-438e-8983-957e5c3bce49" message="#[&quot;Request received to get cartItem by filters&quot;]" />
+        <db:select doc:name="Select" doc:id="e3df9228-58db-489b-bf28-db5388c27c15" config-ref="Database_Config">
+            <db:sql><![CDATA[call filterCartItems(:userId, :productId);]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	userId: attributes.queryParams.userId,
+	productId: attributes.queryParams.productId
+}]]]></db:input-parameters>
+        </db:select>
+        <ee:transform doc:name="Transform Message" doc:id="1c550690-e934-4261-8f02-b47f3ae0e72d">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\carts\(cartItemId):ecommercesuitedatabasesystemapi-config">
+		<logger level="INFO" doc:name="Logger" doc:id="5e6029ec-a914-44a8-b80e-1bebb37ed1da" message="#[&quot;Request received to get cart item by cartItemId:&quot; ++ attributes.uriParams.cartItemId]" />
+        <db:select doc:name="Select" doc:id="ace8c115-5692-480a-abf3-5489c1e09b27" config-ref="Database_Config">
+            <db:sql><![CDATA[select * from carts where cartItemId = :cartItemId;]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	cartItemId: attributes.uriParams.cartItemId
+}]]]></db:input-parameters>
+        </db:select>
+        <ee:transform doc:name="Transform Message" doc:id="6f05c06c-0441-48d5-848d-629806e5c2a9">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <choice doc:name="Choice" doc:id="de99d7d1-230e-4b96-951c-58524078fe2d">
+            <when expression="#[isEmpty(payload)]">
+                <raise-error doc:name="Raise error" doc:id="fabac4cc-02b7-4953-887a-1325d9c94a02" type="APP:NOT_FOUND" />
+            </when>
+        </choice>
+        <error-handler>
+            <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="2374aaa0-404f-4046-b86d-0577ead04c85" type="APP:NOT_FOUND">
+                <set-variable value="404" doc:name="httpStatus 404" doc:id="e2fbb048-7e78-4cb7-8a01-8296be4004ee" variableName="httpStatus" />
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="post:\carts:application\json:ecommercesuitedatabasesystemapi-config">
+		<logger level="INFO" doc:name="Logger" doc:id="7ace87a6-9594-4856-98ba-4c09d0e30be8" message="#[&quot;Request received to post new item to cart. userId:&quot; ++ payload.userId]" />
+        <db:insert doc:name="Insert" doc:id="ad110123-d523-43ba-84f0-3beba17ee498" config-ref="Database_Config">
+            <db:sql><![CDATA[insert into carts(cartItemId, userId, productId, quantity)
+values(:cartItemId, :userId, :productId, :quantity);]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	cartItemId: payload.cartItemId,
+	userId: payload.userId,
+	productId: payload.productId,
+	quantity: payload.quantity
+}]]]></db:input-parameters>
+        </db:insert>
     </flow>
 </mule>

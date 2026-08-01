@@ -12,7 +12,7 @@ create table users
     memType varchar(20) default "free",
     memExpiryDate date);
 
-
+select * from ecommerce_suite.users;
 
 create table storeData
 	(storeName varchar(50) unique,
@@ -23,6 +23,7 @@ create table storeData
     accountHolderName varchar(50),
     userId varchar(10),
     foreign key (userId) references users(userId));
+
 
 
 
@@ -63,6 +64,7 @@ create table products
     details varchar(255) not null,
     foreign key (storeId) references storeData(storeId));
 
+
 delimiter //
 create procedure filterProducts(
 IN p_storeId varchar(10),
@@ -73,7 +75,8 @@ IN p_maxPrice double,
 IN p_minPrice double,
 IN p_inStock varchar(10),
 IN p_notInStock varchar(10),
-IN p_minRatings double)
+IN p_minRatings double,
+IN p_storeName varchar(50))
 BEGIN
 select s.storeName, p.productName, p.brand, p.productId, p.storeId, p.stock, p.price, p.category, p.subCategory,
 p.rating, p.noOfReviews, p.details
@@ -88,7 +91,32 @@ and (p_maxPrice is null or p.price<=p_maxPrice)
 and (p_minPrice is null or p.price>=p_minPrice)
 and (p_inStock is null or p.stock>0)
 and (p_notInStock is null or p.stock=0)
-and (p_minRatings is null or p.rating>=p_minRatings);
+and (p_minRatings is null or p.rating>=p_minRatings)
+and (p_storeName is null or s.storeName=p_storeName);
+END//
+delimiter ;
+
+delimiter //
+create procedure updateProducts(
+IN p_productId varchar(10),
+IN p_productName varchar(50),
+IN p_brand varchar(50),
+IN p_price double,
+IN p_category varchar(50),
+IN p_subCategory varchar(50),
+IN p_details varchar(255),
+IN p_quantity integer)
+BEGIN
+update products
+set 
+	productName = coalesce(p_productName, productName),
+    brand = coalesce(p_brand, brand),
+    price = coalesce(p_price, price),
+    category = coalesce(p_category, category),
+    subCategory = coalesce(p_subCategory, subCategory),
+    details = coalesce(p_details, details),
+    stock = stock + coalesce(p_quantity, 0)
+where productId = p_productId;
 END//
 delimiter ;
 
@@ -112,6 +140,5 @@ priceAtPurchase double not null,
 quantity integer not null,
 foreign key (orderId) references orders(orderId),
 foreign key (productId) references products(productId));
-
 
 
