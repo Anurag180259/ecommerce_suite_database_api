@@ -3,7 +3,7 @@
     <http:listener-config name="ecommercesuitedatabasesystemapi-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8083" />
     </http:listener-config>
-    <apikit:config name="ecommercesuitedatabasesystemapi-config" api="resource::297e1185-2a7e-4734-9d69-effb0bb9fbe9:ecommercesuitedatabasesystemapi:1.0.25:raml:zip:ecommercesuitedatabasesystemapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <apikit:config name="ecommercesuitedatabasesystemapi-config" api="resource::297e1185-2a7e-4734-9d69-effb0bb9fbe9:ecommercesuitedatabasesystemapi:1.0.28:raml:zip:ecommercesuitedatabasesystemapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
     <db:config name="Database_Config" doc:name="Database Config" doc:id="5a1a8061-a3f9-457f-ad8f-0ca6903544b7">
         <db:my-sql-connection host="localhost" port="3306" user="root" password="Anurag@1802" database="ecommerce_suite" />
     </db:config>
@@ -355,33 +355,33 @@ payload]]></ee:set-payload>
     </flow>
     <flow name="delete:\carts:ecommercesuitedatabasesystemapi-config">
         <logger level="INFO" doc:name="Logger" doc:id="8c0d3d10-d082-4144-a297-76c1ab05d672" message="#[&quot;Request received to delete cart items by userId/cartItemId&quot;]" />
-        <db:delete doc:name="Delete" doc:id="7715dfee-56f6-48bc-a3c5-aa963035f523">
+        <db:stored-procedure doc:name="Stored procedure" doc:id="0d04cd45-de20-4a65-a068-1622aa1e6127" config-ref="Database_Config">
             <db:sql><![CDATA[call deleteCartByFilters(:userId, :cartItemId);]]></db:sql>
             <db:input-parameters><![CDATA[#[{
 	userId: attributes.queryParams.userId,
 	cartItemId: attributes.queryParams.cartItemId
 }]]]></db:input-parameters>
-        </db:delete>
+        </db:stored-procedure>
     </flow>
     <flow name="patch:\carts\(cartItemId):application\json:ecommercesuitedatabasesystemapi-config">
-		<logger level="INFO" doc:name="Logger" doc:id="4a84dd5b-ba1a-42ef-a429-0a443ea83188" message="#[&quot;Request received to increase/decrease cart quantity for cartItemId:&quot; ++ attributes.uriParams.cartItemId]" />
+        <logger level="INFO" doc:name="Logger" doc:id="4a84dd5b-ba1a-42ef-a429-0a443ea83188" message="#[&quot;Request received to increase/decrease cart quantity for cartItemId:&quot; ++ attributes.uriParams.cartItemId]" />
         <db:update doc:name="Update" doc:id="ab971e8a-2476-40a0-a457-cde9b99a9792" config-ref="Database_Config">
             <db:sql><![CDATA[update carts
-set quantity=quantity + :quantity
+set quantity=:quantity
 where cartItemId=:cartItemId;]]></db:sql>
             <db:input-parameters><![CDATA[#[{
 	quantity: payload.quantity,
 	cartItemId: attributes.uriParams.cartItemId
 }]]]></db:input-parameters>
         </db:update>
-		<ee:transform doc:name="Transform Message" doc:id="bcdd4918-b0f9-4bb5-b46c-e834ba6fb6ec" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
+        <ee:transform doc:name="Transform Message" doc:id="bcdd4918-b0f9-4bb5-b46c-e834ba6fb6ec">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 payload]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
+            </ee:message>
+        </ee:transform>
     </flow>
     <flow name="get:\carts:ecommercesuitedatabasesystemapi-config">
         <logger level="INFO" doc:name="Logger" doc:id="2c2525b2-c92c-438e-8983-957e5c3bce49" message="#[&quot;Request received to get cartItem by filters&quot;]" />
@@ -402,7 +402,7 @@ payload]]></ee:set-payload>
         </ee:transform>
     </flow>
     <flow name="get:\carts\(cartItemId):ecommercesuitedatabasesystemapi-config">
-		<logger level="INFO" doc:name="Logger" doc:id="5e6029ec-a914-44a8-b80e-1bebb37ed1da" message="#[&quot;Request received to get cart item by cartItemId:&quot; ++ attributes.uriParams.cartItemId]" />
+        <logger level="INFO" doc:name="Logger" doc:id="5e6029ec-a914-44a8-b80e-1bebb37ed1da" message="#[&quot;Request received to get cart item by cartItemId:&quot; ++ attributes.uriParams.cartItemId]" />
         <db:select doc:name="Select" doc:id="ace8c115-5692-480a-abf3-5489c1e09b27" config-ref="Database_Config">
             <db:sql><![CDATA[select * from carts where cartItemId = :cartItemId;]]></db:sql>
             <db:input-parameters><![CDATA[#[{
@@ -429,7 +429,7 @@ payload]]></ee:set-payload>
         </error-handler>
     </flow>
     <flow name="post:\carts:application\json:ecommercesuitedatabasesystemapi-config">
-		<logger level="INFO" doc:name="Logger" doc:id="7ace87a6-9594-4856-98ba-4c09d0e30be8" message="#[&quot;Request received to post new item to cart. userId:&quot; ++ payload.userId]" />
+        <logger level="INFO" doc:name="Logger" doc:id="7ace87a6-9594-4856-98ba-4c09d0e30be8" message="#[&quot;Request received to post new item to cart. userId:&quot; ++ payload.userId]" />
         <db:insert doc:name="Insert" doc:id="ad110123-d523-43ba-84f0-3beba17ee498" config-ref="Database_Config">
             <db:sql><![CDATA[insert into carts(cartItemId, userId, productId, quantity)
 values(:cartItemId, :userId, :productId, :quantity);]]></db:sql>
@@ -438,6 +438,38 @@ values(:cartItemId, :userId, :productId, :quantity);]]></db:sql>
 	userId: payload.userId,
 	productId: payload.productId,
 	quantity: payload.quantity
+}]]]></db:input-parameters>
+        </db:insert>
+    </flow>
+    <flow name="post:\orderItems:application\json:ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" message="#[&quot;Adding orderItems into orderItems table&quot; ++ payload.orderItemId]" />
+        <db:insert doc:name="Insert" doc:id="51299458-3535-4816-84bc-99faf4610308" config-ref="Database_Config">
+            <db:sql><![CDATA[insert into table orderItems(orderId, productId, priceAtPurchase, quantity, orderItemId)
+values(:orderId, :productId, :priceAtPurchase, :quantity, :orderItemId);]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	orderId:payload.orderId,
+	orderItemId:payload.orderItemId,
+	productId:payload.productId,
+	priceAtPurchase:payload.priceAtPurchase,
+	quantity:payload.quantity
+}]]]></db:input-parameters>
+        </db:insert>
+    </flow>
+    <flow name="post:\orders:application\json:ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" message="#[&quot;Request received to place new order orderId:&quot; ++ payload.orderId]" />
+        <db:insert doc:name="Insert" doc:id="2697919d-05fb-4b1d-bad2-ae521eabf6e3" config-ref="Database_Config">
+            <db:sql><![CDATA[insert into orders(orderId, orderDate, orderStatus, totalOrderValue, userId, deliveryPincode, expDeliveryDate, transactionId, paymentStatus)
+values(:orderId, :orderDate, :orderStatus, :totalOrderValue, :userId, :deliveryPincode, :expDeliveryDate, :transactionId, :paymentStatus);]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	orderId:payload.orderId,
+	orderDate:now() as Date,
+	orderStatus:payload.orderStatus,
+	totalOrderValue:payload.totalOrderValue,
+	userId:payload.userId,
+	deliveryPincode:payload.deliveryPincode,
+	expDeliveryDate:(now() as Date) + (payload.deliveryTime as Period),
+	transactionId:payload.transactionId,
+	paymentStatus:payload.paymentStatus
 }]]]></db:input-parameters>
         </db:insert>
     </flow>
