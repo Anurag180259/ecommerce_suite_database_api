@@ -1,0 +1,75 @@
+#%RAML 1.0
+title: ecommerceSuiteDatabaseSystemApi2
+
+
+uses:
+  library: fragments/library.raml
+
+/users:
+  post:
+    body:
+      application/json:
+        library.postUserRequestBody
+  get:
+    is: [library.getUsersByEmail]
+  /{userId}:
+    get:
+  /getByRole:
+    get:
+      is: [library.getUsersByRole]
+
+  
+/stores:
+  post:
+    body:
+      application/json:
+        library.postStoresRequestBody
+  /{storeId}:
+    patch:
+      body:
+        application/json:
+          library.patchStoresRequestBody
+    get:
+
+/products:
+  post:
+    body:
+      application/json:
+        library.postProductRequestBody
+  get:
+    is: [library.getProductsByFilters]
+  /{productId}:
+    get:
+    patch:
+      body:
+        application/json:
+          library.patchProductRequestBody
+    delete:
+    
+/carts:
+  post:
+    body:
+      application/json:
+        library.postCartRequestBody
+  delete:
+    is: [library.deleteCartByFilters]
+  get:
+    is: [library.getCartByFilters]
+  /{cartItemId}:
+    get:
+    patch:
+      body:
+        application/json:
+          library.patchCartRequestBody
+
+/orders:
+  post:
+    body:
+      application/json:
+        library.postOrderRequestBody
+
+/orderItems:
+  post:
+    body:
+      application/json:
+        library.postOrderItemsRequestBody

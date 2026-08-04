@@ -3,7 +3,7 @@
     <http:listener-config name="ecommercesuitedatabasesystemapi-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8083" />
     </http:listener-config>
-    <apikit:config name="ecommercesuitedatabasesystemapi-config" api="resource::297e1185-2a7e-4734-9d69-effb0bb9fbe9:ecommercesuitedatabasesystemapi:1.0.29:raml:zip:ecommercesuitedatabasesystemapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <apikit:config name="ecommercesuitedatabasesystemapi-config" api="ecommercesuitedatabasesystemapi2.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
     <db:config name="Database_Config" doc:name="Database Config" doc:id="5a1a8061-a3f9-457f-ad8f-0ca6903544b7">
         <db:my-sql-connection host="localhost" port="3306" user="root" password="Anurag@1802" database="ecommerce_suite" />
     </db:config>
