@@ -75,7 +75,7 @@
 		<dependency>
 			<groupId>297e1185-2a7e-4734-9d69-effb0bb9fbe9</groupId>
 			<artifactId>ecommercesuitedatabasesystemapi</artifactId>
-			<version>1.0.28</version>
+			<version>1.0.29</version>
 			<classifier>raml</classifier>
 			<type>zip</type>
 		</dependency>
