@@ -30,6 +30,8 @@ uses:
         application/json:
           library.patchStoresRequestBody
     get:
+  get:
+    is: [library.getStoresByUserId]
 
 /products:
   post:
@@ -67,9 +69,37 @@ uses:
     body:
       application/json:
         library.postOrderRequestBody
+  get:
+    is: [library.getOrdersByUserId]
+  /{orderId}:
+    get:
+    /cancellation:
+      patch:
+    /paymentStatus:
+      patch:
+        body:
+          application/json:
+            properties:
+              paymentStatus:
+                type: string
+  /paymentStatus:
+    get:
+      queryParameters:
+        paymentStatus:
+          type: string
+          enum: ["pending", "reversed", "success"]
+                
+      
 
 /orderItems:
   post:
     body:
       application/json:
         library.postOrderItemsRequestBody
+  /storeId:
+    get:
+      is: [library.getOrderItemsByStoreId]
+  /orderId:
+    get:
+      is: [library.getOrderItemsByOrderId]
+

@@ -194,6 +194,9 @@ types:
             orderItemId:
               type: string
               pattern: ^OI-[0-9a-fA-F]{6}$
+            storeId:
+              type: string
+              pattern: ^ST-[0-9a-fA-F]{6}$
   postOrderItemsRequestBody:
     properties:
       orderId:
@@ -272,6 +275,30 @@ traits:
         type: string
       productId: 
         required: false
+        type: string
+  getOrderItemsByStoreId:
+    queryParameters:
+      storeId:
+        required: true
+        pattern: ^ST-[0-9A-Fa-f]{6}$
+        type: string
+  getStoresByUserId:
+    queryParameters:
+      userId:
+        required: true
+        pattern: ^S-[0-9A-Fa-f]{6}$
+        type: string
+  getOrdersByUserId:
+    queryParameters:
+      userId:
+        required: true
+        pattern: ^B-[0-9A-Fa-f]{6}$
+        type: string
+  getOrderItemsByOrderId:
+    queryParameters:
+      orderId:
+        required: true
+        pattern: ^OD-[0-9A-Fa-f]{6}$
         type: string
 
 

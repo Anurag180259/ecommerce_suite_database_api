@@ -72,13 +72,13 @@
 			<artifactId>mysql-connector-java</artifactId>
 			<version>8.0.30</version>
 		</dependency>
-		<dependency>
-			<groupId>297e1185-2a7e-4734-9d69-effb0bb9fbe9</groupId>
-			<artifactId>ecommercesuitedatabasesystemapi</artifactId>
-			<version>1.0.29</version>
-			<classifier>raml</classifier>
-			<type>zip</type>
-		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>297e1185-2a7e-4734-9d69-effb0bb9fbe9</groupId> -->
+<!-- 			<artifactId>ecommercesuitedatabasesystemapi</artifactId> -->
+<!-- 			<version>1.0.29</version> -->
+<!-- 			<classifier>raml</classifier> -->
+<!-- 			<type>zip</type> -->
+<!-- 		</dependency> -->
 	</dependencies>
 
 	<repositories>

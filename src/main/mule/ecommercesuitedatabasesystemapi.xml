@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd  http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
     <http:listener-config name="ecommercesuitedatabasesystemapi-httpListenerConfig">
-        <http:listener-connection host="0.0.0.0" port="8083" />
+        <http:listener-connection host="0.0.0.0" port="${http.port}" />
     </http:listener-config>
     <apikit:config name="ecommercesuitedatabasesystemapi-config" api="ecommercesuitedatabasesystemapi2.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
     <db:config name="Database_Config" doc:name="Database Config" doc:id="5a1a8061-a3f9-457f-ad8f-0ca6903544b7">
-        <db:my-sql-connection host="localhost" port="3306" user="root" password="Anurag@1802" database="ecommerce_suite" />
+        <db:my-sql-connection host="${db.host}" port="${db.port}" user="${db.username}" password="${db.password}" database="${db.database}" />
     </db:config>
-    <flow name="ecommercesuitedatabasesystemapi-main">
+    <configuration doc:name="Configuration" doc:id="d1732c75-c104-42f8-8039-ee876b41d1b5" defaultErrorHandler-ref="globalErrorHandlerError_Handler" />
+    <configuration-properties doc:name="Configuration properties" doc:id="3e2a076b-261e-46b8-9e74-0657e02ed05d" file="configuration.properties" />
+	<flow name="ecommercesuitedatabasesystemapi-main">
         <http:listener config-ref="ecommercesuitedatabasesystemapi-httpListenerConfig" path="/database/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
                 <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
@@ -165,6 +167,11 @@ values(:userId, :firstName, :lastName, :email, :phoneNo, :city, :role, :password
 	password:payload.password
 }]]]></db:input-parameters>
         </db:insert>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="69aad9e3-d311-4bfd-af09-561ef3f7ca45" when='#[(error.description contains "email") and (error.description contains "Duplicate")]'>
+				<set-variable value="409" doc:name="httpStatus409" doc:id="9f0f8557-c2eb-40bf-b050-b4b434ef79a8" variableName="httpStatus"/>
+			</on-error-propagate>
+		</error-handler>
     </flow>
     <flow name="get:\users:ecommercesuitedatabasesystemapi-config">
         <logger level="INFO" message="Fetching user data by email." />
@@ -464,14 +471,15 @@ values(:orderId, :orderDate, :orderStatus, :totalOrderValue, :userId, :deliveryP
             </db:insert>
             <foreach doc:name="For Each" doc:id="7e40b283-bd4a-4b5d-b479-4235fe254667" collection="#[payload.listOfItems]">
                 <db:insert doc:name="Insert" doc:id="51299458-3535-4816-84bc-99faf4610308" config-ref="Database_Config" target="temp">
-                    <db:sql><![CDATA[insert into orderItems(orderId, productId, priceAtPurchase, quantity, orderItemId)
-values(:orderId, :productId, :priceAtPurchase, :quantity, :orderItemId);]]></db:sql>
+                    <db:sql><![CDATA[insert into orderItems(orderId, productId, priceAtPurchase, quantity, orderItemId, storeId)
+values(:orderId, :productId, :priceAtPurchase, :quantity, :orderItemId, :storeId);]]></db:sql>
                     <db:input-parameters><![CDATA[#[{
 	orderId:payload.orderId,
 	orderItemId:payload.orderItemId,
 	productId:payload.productId,
 	priceAtPurchase:payload.priceAtPurchase,
-	quantity:payload.quantity
+	quantity:payload.quantity,
+	storeId:payload.storeId
 }]]]></db:input-parameters>
                 </db:insert>
                 <db:update doc:name="Update" doc:id="0d3f91fd-4313-497d-986c-a14b35b91bb1" config-ref="Database_Config">
@@ -495,5 +503,138 @@ where productId=:productId;]]></db:sql>
                 </when>
             </choice>
         </try>
+    </flow>
+    <flow name="get:\orders:ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" message="#[&quot;Request received to fetch orders by userId(buyer)&quot;]" />
+        <db:select doc:name="Select" doc:id="1e72d4f2-52ad-4e9f-ac79-bec42840a4a8" config-ref="Database_Config">
+            <db:sql><![CDATA[select * from orders where userId=:userId]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	userId: attributes.queryParams.userId
+}]]]></db:input-parameters>
+        </db:select>
+        <ee:transform doc:name="Transform Message" doc:id="b71cc1c0-bf39-4f58-9cb0-0714742c6803">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\stores:ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" message="#[&quot;Fetching stores by userId&quot;]" />
+        <db:select doc:name="Select" doc:id="374aec39-d305-4796-95de-f8043be845e0" config-ref="Database_Config">
+            <db:sql><![CDATA[select * from storeData where userId=:userId;]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	userId:attributes.queryParams.userId
+}]]]></db:input-parameters>
+        </db:select>
+        <ee:transform doc:name="Transform Message" doc:id="1999f2d8-fc6c-41c9-8df0-7e9afa7bda39">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\orderItems\orderId:ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" doc:name="Logger" doc:id="796408c3-b38b-47bc-a95a-8c5f9789dfd4" message="#[&quot;Fetching orderItems by orderId&quot;]" />
+        <db:select doc:name="Select" doc:id="e0779887-500d-40da-8ce5-0fa22a91b913" config-ref="Database_Config">
+            <db:sql><![CDATA[select * from orderItems where orderId=:orderId;]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	orderId:attributes.queryParams.orderId
+}]]]></db:input-parameters>
+        </db:select>
+        <ee:transform doc:name="Transform Message" doc:id="c5e3928b-de70-46d9-81dc-45590b511d0b">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\orderItems\storeId:ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" doc:name="Logger" doc:id="ffd899ac-e08f-4d57-8261-f1a68332aede" message="#[&quot;Fetching orderItems by storeId&quot;]" />
+        <db:select doc:name="Select" doc:id="e05352cc-8853-47d7-b31b-d2ad748dd7ee" config-ref="Database_Config">
+            <db:sql><![CDATA[select * from orderItems where storeId=:storeId;]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	storeId:attributes.queryParams.storeId
+}]]]></db:input-parameters>
+        </db:select>
+        <ee:transform doc:name="Transform Message" doc:id="64ad36ae-dc2c-4346-a6b9-9607510ff5fc">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\orders\(orderId):ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" message="#[&quot;Fetching order details by orderId&quot;]" />
+        <db:select doc:name="Select" doc:id="9df426fc-cbfb-4c19-89b2-b1999cc1cb87" config-ref="Database_Config">
+            <db:sql><![CDATA[select * from orders where orderId=:orderId;]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	orderId:attributes.uriParams.orderId
+}]]]></db:input-parameters>
+        </db:select>
+        <ee:transform doc:name="Transform Message" doc:id="bc5d131d-8947-46de-848a-4ea1babab1f5">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <choice doc:name="Choice" doc:id="946c1db5-8beb-40ce-b157-3e07642e0476">
+            <when expression="#[isEmpty(payload)]">
+                <raise-error doc:name="APP:NOT_FOUND" doc:id="04862b8e-1eb9-4203-aabc-e017d71fdb46" type="APP:NOT_FOUND" />
+            </when>
+        </choice>
+    </flow>
+    <flow name="patch:\orders\(orderId)\cancellation:ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" doc:name="Logger" doc:id="f6241d1b-e6a1-4f6a-b741-99832c3c94b5" message="#[&quot;Changing order status by orderId&quot;]" />
+        <db:update doc:name="Update" doc:id="7490e304-058b-4074-911f-e4f1e749e3c7" config-ref="Database_Config">
+            <db:sql><![CDATA[update orders
+set orderStatus="cancelled",
+paymentStatus="reversed"
+where orderId=:orderId;]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	orderId:attributes.uriParams.orderId
+}]]]></db:input-parameters>
+        </db:update>
+    </flow>
+    <flow name="patch:\orders\(orderId)\paymentStatus:application\json:ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" message="#[&quot;Changing payment status&quot;]" />
+        <db:update doc:name="Update" doc:id="a7ef7c5d-1ed6-4448-a79e-b253a151cb23" config-ref="Database_Config">
+            <db:sql><![CDATA[update orders 
+set paymentStatus=:paymentStatus,
+orderStatus=:orderStatus
+where orderId=:orderId;]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+	paymentStatus:payload.paymentStatus,
+	orderId:attributes.uriParams.orderId,
+	orderStatus:if(payload.paymentStatus == "success") "confirmed" else "pending"
+}]]]></db:input-parameters>
+        </db:update>
+    </flow>
+    <flow name="get:\orders\paymentStatus:ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" message='#["Getting orders by payment status"]' />
+		<db:select doc:name="Select" doc:id="f239bb07-8435-44f8-8da7-0b145c584719" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from orders where paymentStatus=:paymentStatus;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	paymentStatus:attributes.queryParams.paymentStatus
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="2a08d1b6-ed89-407d-9f81-94a41d6ed351" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
     </flow>
 </mule>
