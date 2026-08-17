@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="ecommercesuitedatabasesystemapi-test-suite.xml" />
+	<munit:test name="post:\stores_conflict" doc:id="b93c5913-c70d-451a-ad00-2ceceb8b963f" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="dbInsert" doc:id="cd0f5123-f18b-4b09-bd7b-a2801bc0675f" processor="db:insert">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="8f00dd78-b025-4843-ad2b-ca3a903d43e8" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-call flow="raiseError" />
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Event" doc:id="3f6941b3-6fa4-4113-86b9-c789766768bd" >
+				<munit:variables >
+					<munit:variable key="errorMessage" value='Duplicate entry for field "storeName"' />
+				</munit:variables>
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution>
+			<try doc:name="Try" doc:id="adf43eb2-0691-4339-be7a-c614d6c6a7c5" >
+				<flow-ref doc:name="Flow-ref to post:\stores:application\json:ecommercesuitedatabasesystemapi-config" doc:id="2a29d8c2-40d2-412b-a4e4-f099e672005a" name="post:\stores:application\json:ecommercesuitedatabasesystemapi-config" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="e09283ff-dd44-448e-b65d-2c341d7a2b52" />
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="7d4dad87-36dc-4f8f-afca-de49e8167f46" expression="#[vars.httpStatus as Number]" is="#[MunitTools::equalTo(409)]"/>
+		</munit:validation>
+	</munit:test>
+	<flow name="raiseError" doc:id="ebcf1bff-dee1-4776-85c7-bbb15d66ba19" >
+		<raise-error doc:name="Raise error" doc:id="a8c01aa2-fb26-48af-8a75-b77ab093d1b2" description="#[vars.errorMessage]" type="APP:RAISE_ERROR"/>
+	</flow>
+
+
+</mule>

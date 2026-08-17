@@ -5,7 +5,7 @@ create table users
     firstName varchar(20),
     lastName varchar(20),
     email varchar(50) unique,
-    pass varchar(50),
+    pass varchar(60),
     phoneNo varchar(10) unique,
     city varchar(20),
     roles varchar(10),
@@ -142,3 +142,23 @@ foreign key (orderId) references orders(orderId),
 foreign key (productId) references products(productId));
 
 
+create table carts
+(cartItemId varchar(10) primary key,
+productId varchar(10),
+userId varchar(10),
+quantity integer,
+foreign key (productId) references products(productId),
+foreign key (userId) references users(userId));
+
+delimiter //
+create procedure filterCartItems(
+IN p_userId varchar(10),
+IN p_productId varchar(10))
+BEGIN
+select * from carts where userId=p_userId
+and (p_productId is null or productId=p_productId);
+END //
+delimiter ;
+
+alter table users
+modify column pass varchar(60);

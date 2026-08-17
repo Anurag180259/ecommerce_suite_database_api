@@ -146,7 +146,7 @@ values(:storeName, :storeId, :name, :gstin, :accNumber, :userId)]]></db:sql>
 }]]]></db:input-parameters>
         </db:insert>
         <error-handler>
-            <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b4a670ff-f767-491f-9a49-98b4b892c65f" type="DB:QUERY_EXECUTION" when="#[error.description contains &quot;storeName&quot;]">
+            <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b4a670ff-f767-491f-9a49-98b4b892c65f" when='#[(error.description contains "storeName") and (error.description contains "Duplicate")]'>
                 <set-variable value="409" doc:name="httpStatus 409" doc:id="3e2ce298-f03a-4104-b264-449c4252d882" variableName="httpStatus" />
             </on-error-propagate>
         </error-handler>
@@ -242,11 +242,6 @@ payload]]></ee:set-payload>
                 <raise-error doc:name="APP:NOT_FOUND" doc:id="2864713f-3cdb-4c44-abbb-84e772c6052d" type="APP:NOT_FOUND" />
             </when>
         </choice>
-        <error-handler>
-            <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propogate" doc:id="c393d5c4-99ad-4ef9-befe-7dfdea56981c" type="APP:NOT_FOUND">
-                <set-variable value="404" doc:name="httpStatus 404" doc:id="cb5cf18c-bbcb-4096-a817-7c0f4ac65e78" variableName="httpStatus" />
-            </on-error-propagate>
-        </error-handler>
     </flow>
     <flow name="post:\products:application\json:ecommercesuitedatabasesystemapi-config">
         <logger level="INFO" message="Adding new product to products table" />
@@ -313,11 +308,6 @@ payload]]></ee:set-payload>
                 <raise-error doc:name="APP:NOT_FOUND" doc:id="7c700f31-225a-4e28-ac9f-a7f8cb160be0" type="APP:NOT_FOUND" />
             </when>
         </choice>
-        <error-handler>
-            <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propogate" doc:id="4226c822-12b2-4ded-92fd-2306458b5f68" type="APP:NOT_FOUND">
-                <set-variable value="404" doc:name="httpStatus 404" doc:id="4437f333-f84b-4261-a416-557a7bd9e756" variableName="httpStatus" />
-            </on-error-propagate>
-        </error-handler>
     </flow>
     <flow name="delete:\products\(productId):ecommercesuitedatabasesystemapi-config">
         <logger level="INFO" message="#[&quot;Delete request for productId:&quot; ++ attributes.uriParams.productId ++ &quot; received. Calling database api to perform deletion&quot;]" />
@@ -426,14 +416,9 @@ payload]]></ee:set-payload>
         </ee:transform>
         <choice doc:name="Choice" doc:id="de99d7d1-230e-4b96-951c-58524078fe2d">
             <when expression="#[isEmpty(payload)]">
-                <raise-error doc:name="Raise error" doc:id="fabac4cc-02b7-4953-887a-1325d9c94a02" type="APP:NOT_FOUND" />
+                <raise-error doc:name="APP:NOT_FOUND" doc:id="fabac4cc-02b7-4953-887a-1325d9c94a02" type="APP:NOT_FOUND" />
             </when>
         </choice>
-        <error-handler>
-            <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="2374aaa0-404f-4046-b86d-0577ead04c85" type="APP:NOT_FOUND">
-                <set-variable value="404" doc:name="httpStatus 404" doc:id="e2fbb048-7e78-4cb7-8a01-8296be4004ee" variableName="httpStatus" />
-            </on-error-propagate>
-        </error-handler>
     </flow>
     <flow name="post:\carts:application\json:ecommercesuitedatabasesystemapi-config">
         <logger level="INFO" doc:name="Logger" doc:id="7ace87a6-9594-4856-98ba-4c09d0e30be8" message="#[&quot;Request received to post new item to cart. userId:&quot; ++ payload.userId]" />

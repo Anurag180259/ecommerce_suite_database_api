@@ -15,6 +15,7 @@
 
 		<app.runtime>4.9.0</app.runtime>
 		<mule.maven.plugin.version>4.10.1</mule.maven.plugin.version>
+		<munit.version>3.4.0</munit.version>
 	</properties>
 
 	<build>
@@ -37,6 +38,29 @@
 						</sharedLibrary>
 					</sharedLibraries>
 					<classifier>mule-application</classifier>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.mulesoft.munit.tools</groupId>
+				<artifactId>munit-maven-plugin</artifactId>
+				<version>${munit.version}</version>
+				<executions>
+					<execution>
+						<id>test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>test</goal>
+							<goal>coverage-report</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<coverage>
+						<runCoverage>true</runCoverage>
+						<formats>
+							<format>html</format>
+						</formats>
+					</coverage>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -72,13 +96,33 @@
 			<artifactId>mysql-connector-java</artifactId>
 			<version>8.0.30</version>
 		</dependency>
-<!-- 		<dependency> -->
-<!-- 			<groupId>297e1185-2a7e-4734-9d69-effb0bb9fbe9</groupId> -->
-<!-- 			<artifactId>ecommercesuitedatabasesystemapi</artifactId> -->
-<!-- 			<version>1.0.29</version> -->
-<!-- 			<classifier>raml</classifier> -->
-<!-- 			<type>zip</type> -->
-<!-- 		</dependency> -->
+		<!-- 		<dependency> -->
+		<!-- 			<groupId>297e1185-2a7e-4734-9d69-effb0bb9fbe9</groupId> -->
+		<!-- 			<artifactId>ecommercesuitedatabasesystemapi</artifactId> -->
+		<!-- 			<version>1.0.29</version> -->
+		<!-- 			<classifier>raml</classifier> -->
+		<!-- 			<type>zip</type> -->
+		<!-- 		</dependency> -->
+		<dependency>
+			<groupId>com.mulesoft.munit</groupId>
+			<artifactId>munit-runner</artifactId>
+			<version>3.4.0</version>
+			<classifier>mule-plugin</classifier>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.mulesoft.munit</groupId>
+			<artifactId>munit-tools</artifactId>
+			<version>3.4.0</version>
+			<classifier>mule-plugin</classifier>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mule.weave</groupId>
+			<artifactId>assertions</artifactId>
+			<version>1.2.1</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<repositories>
