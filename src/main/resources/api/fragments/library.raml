@@ -300,7 +300,11 @@ traits:
         required: true
         pattern: ^OD-[0-9A-Fa-f]{6}$
         type: string
-
+  getStoresByVerificationStatus:
+    queryParameters:
+      verificationStatus:
+        required: true
+        enum: [verified, unverified, rejected]
 
 
 

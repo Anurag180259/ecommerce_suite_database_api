@@ -9,7 +9,7 @@
     </db:config>
     <configuration doc:name="Configuration" doc:id="d1732c75-c104-42f8-8039-ee876b41d1b5" defaultErrorHandler-ref="globalErrorHandlerError_Handler" />
     <configuration-properties doc:name="Configuration properties" doc:id="3e2a076b-261e-46b8-9e74-0657e02ed05d" file="configuration.properties" />
-	<flow name="ecommercesuitedatabasesystemapi-main">
+    <flow name="ecommercesuitedatabasesystemapi-main">
         <http:listener config-ref="ecommercesuitedatabasesystemapi-httpListenerConfig" path="/database/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
                 <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
@@ -146,7 +146,7 @@ values(:storeName, :storeId, :name, :gstin, :accNumber, :userId)]]></db:sql>
 }]]]></db:input-parameters>
         </db:insert>
         <error-handler>
-            <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b4a670ff-f767-491f-9a49-98b4b892c65f" when='#[(error.description contains "storeName") and (error.description contains "Duplicate")]'>
+            <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b4a670ff-f767-491f-9a49-98b4b892c65f" when="#[(error.description contains &quot;storeName&quot;) and (error.description contains &quot;Duplicate&quot;)]">
                 <set-variable value="409" doc:name="httpStatus 409" doc:id="3e2ce298-f03a-4104-b264-449c4252d882" variableName="httpStatus" />
             </on-error-propagate>
         </error-handler>
@@ -167,11 +167,11 @@ values(:userId, :firstName, :lastName, :email, :phoneNo, :city, :role, :password
 	password:payload.password
 }]]]></db:input-parameters>
         </db:insert>
-		<error-handler >
-			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="69aad9e3-d311-4bfd-af09-561ef3f7ca45" when='#[(error.description contains "email") and (error.description contains "Duplicate")]'>
-				<set-variable value="409" doc:name="httpStatus409" doc:id="9f0f8557-c2eb-40bf-b050-b4b434ef79a8" variableName="httpStatus"/>
-			</on-error-propagate>
-		</error-handler>
+        <error-handler>
+            <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="69aad9e3-d311-4bfd-af09-561ef3f7ca45" when="#[(error.description contains &quot;email&quot;) and (error.description contains &quot;Duplicate&quot;)]">
+                <set-variable value="409" doc:name="httpStatus 409" doc:id="9f0f8557-c2eb-40bf-b050-b4b434ef79a8" variableName="httpStatus" />
+            </on-error-propagate>
+        </error-handler>
     </flow>
     <flow name="get:\users:ecommercesuitedatabasesystemapi-config">
         <logger level="INFO" message="Fetching user data by email." />
@@ -606,14 +606,31 @@ where orderId=:orderId;]]></db:sql>
         </db:update>
     </flow>
     <flow name="get:\orders\paymentStatus:ecommercesuitedatabasesystemapi-config">
-        <logger level="INFO" message='#["Getting orders by payment status"]' />
-		<db:select doc:name="Select" doc:id="f239bb07-8435-44f8-8da7-0b145c584719" config-ref="Database_Config">
-			<db:sql ><![CDATA[select * from orders where paymentStatus=:paymentStatus;]]></db:sql>
-			<db:input-parameters ><![CDATA[#[{
+        <logger level="INFO" message="#[&quot;Getting orders by payment status&quot;]" />
+        <db:select doc:name="Select" doc:id="f239bb07-8435-44f8-8da7-0b145c584719" config-ref="Database_Config">
+            <db:sql><![CDATA[select * from orders where paymentStatus=:paymentStatus;]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
 	paymentStatus:attributes.queryParams.paymentStatus
 }]]]></db:input-parameters>
+        </db:select>
+        <ee:transform doc:name="Transform Message" doc:id="2a08d1b6-ed89-407d-9f81-94a41d6ed351">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\stores\verificationStatus:ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" message='#["Getting list of stores by verification status"]' />
+		<db:select doc:name="Select" doc:id="af2d5cd1-4bb9-4200-8281-fbb8b3ce401c" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from storeData where verificationStatus=:verificationStatus;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	verificationStatus:attributes.queryParams.verificationStatus
+}]]]></db:input-parameters>
 		</db:select>
-		<ee:transform doc:name="Transform Message" doc:id="2a08d1b6-ed89-407d-9f81-94a41d6ed351" >
+		<ee:transform doc:name="Transform Message" doc:id="8a7ef7c0-d145-4832-bfc4-a6a3c990ccc2" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json

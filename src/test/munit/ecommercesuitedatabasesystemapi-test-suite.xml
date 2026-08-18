@@ -37,6 +37,55 @@
 	<flow name="raiseError" doc:id="ebcf1bff-dee1-4776-85c7-bbb15d66ba19" >
 		<raise-error doc:name="Raise error" doc:id="a8c01aa2-fb26-48af-8a75-b77ab093d1b2" description="#[vars.errorMessage]" type="APP:RAISE_ERROR"/>
 	</flow>
+	<munit:test name="post:\users_emailConflict" doc:id="37d550e9-89a6-482a-a654-dde5742a40ef" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="InsertUsers" doc:id="0d599465-5cca-463c-9f2b-a79baf3203ff" processor="db:insert">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c8d38d25-d0f4-4c0a-93e4-ea03cec0be42" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-call flow="raiseError" />
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Event" doc:id="a82f7e2a-2723-4b67-92e7-d6a2f4ee432f" >
+				<munit:variables >
+					<munit:variable key="errorMessage" value='Duplicate entry for field "email"' />
+				</munit:variables>
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution>
+			<try doc:name="Try" doc:id="1f0e5ed7-1574-4606-bcf0-615c0613e00b" >
+				<flow-ref doc:name="Flow-ref to post:\users:application\json:ecommercesuitedatabasesystemapi-config" doc:id="00913941-c3f8-4500-a130-87bada642a61" name="post:\users:application\json:ecommercesuitedatabasesystemapi-config" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="ed0579d0-e44a-47a1-82e1-da4d66503eee" />
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="httpStatus" doc:id="533e9197-709f-4b54-8a51-86ecf307fe22" expression="#[vars.httpStatus as Number]" is="#[MunitTools::equalTo(409)]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="get:\stores\(storeId)" doc:id="0b6ba57d-6139-4b0c-afe7-a8af8b56b506" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="SelectStoreById" doc:id="b139be6b-a752-4264-8614-c8e189ebfffa" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="386bbf51-b05d-4365-a640-c59f7dd4bd87" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[[]]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<try doc:name="Try" doc:id="837e4815-28d2-432a-b17b-07790ae539e4" >
+				<flow-ref doc:name="Flow-ref to get:\stores\(storeId):ecommercesuitedatabasesystemapi-config" doc:id="693c0272-c32b-4b4c-90b3-efb9e69ae631" name="get:\stores\(storeId):ecommercesuitedatabasesystemapi-config" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="735cec4e-1e87-421b-ad07-6cc4b3072a3d" />
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="5162738a-bbc8-4463-92d5-e7b999a445c6" expression="#[vars.httpStatus as Number]" is="#[MunitTools::equalTo(404)]"/>
+		</munit:validation>
+	</munit:test>
 
 
 </mule>

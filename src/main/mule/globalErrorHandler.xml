@@ -5,7 +5,7 @@
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
 	<error-handler name="globalErrorHandlerError_Handler" doc:id="8c74b61a-c325-4831-b782-c4734643fd99" >
 		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="30b9ac8e-cf52-43c8-8792-10221888e606" type="APP:NOT_FOUND">
-			<set-variable value="404" doc:name="httpStatus" doc:id="66323a9e-7e91-49db-ba7b-365a82729edd" variableName="httpStatus"/>
+			<set-variable value="404" doc:name="httpStatus 404" doc:id="66323a9e-7e91-49db-ba7b-365a82729edd" variableName="httpStatus"/>
 		</on-error-propagate>
 	</error-handler>
 </mule>
