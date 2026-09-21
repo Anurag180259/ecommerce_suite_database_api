@@ -138,6 +138,8 @@ orderId varchar(10) not null,
 productId varchar(10) not null,
 priceAtPurchase double not null,
 quantity integer not null,
+storeId varchar(10) not null,
+foreign key (storeId) references storeData(storeId),
 foreign key (orderId) references orders(orderId),
 foreign key (productId) references products(productId));
 
