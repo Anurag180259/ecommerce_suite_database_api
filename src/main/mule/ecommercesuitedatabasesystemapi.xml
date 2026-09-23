@@ -244,7 +244,7 @@ payload]]></ee:set-payload>
         </choice>
     </flow>
     <flow name="post:\products:application\json:ecommercesuitedatabasesystemapi-config">
-        <logger level="INFO" message="Adding new product to products table" />
+        <logger level="INFO" message="#[&quot;Adding new product to products table&quot;]" />
         <db:insert doc:name="Insert" doc:id="c0272fa7-d661-4050-bc11-9be9006ae64b" config-ref="Database_Config">
             <db:sql><![CDATA[insert into products(productName, productId, storeId, brand, stock, price, category, subCategory, details)
 values(:productName, :productId, :storeId, :brand, :stock, :price, :category, :subCategory, :details);]]></db:sql>
@@ -288,7 +288,7 @@ payload]]></ee:set-payload>
         </ee:transform>
     </flow>
     <flow name="get:\products\(productId):ecommercesuitedatabasesystemapi-config">
-        <logger level="INFO" message="Getting products by the product Id" />
+        <logger level="INFO" message="#[&quot;Getting products by the product Id&quot;]" />
         <db:select doc:name="Select" doc:id="06ad4355-347f-4ad1-9c83-b8f12f5ea2f0" config-ref="Database_Config">
             <db:sql><![CDATA[select * from products where productId=:productId;]]></db:sql>
             <db:input-parameters><![CDATA[#[{
@@ -583,8 +583,8 @@ payload]]></ee:set-payload>
         <logger level="INFO" doc:name="Logger" doc:id="f6241d1b-e6a1-4f6a-b741-99832c3c94b5" message="#[&quot;Changing order status by orderId&quot;]" />
         <db:update doc:name="Update" doc:id="7490e304-058b-4074-911f-e4f1e749e3c7" config-ref="Database_Config">
             <db:sql><![CDATA[update orders
-set orderStatus="cancelled",
-paymentStatus="reversed"
+set orderStatus='cancelled',
+paymentStatus='reversed'
 where orderId=:orderId;]]></db:sql>
             <db:input-parameters><![CDATA[#[{
 	orderId:attributes.uriParams.orderId
@@ -623,19 +623,93 @@ payload]]></ee:set-payload>
         </ee:transform>
     </flow>
     <flow name="get:\stores\verificationStatus:ecommercesuitedatabasesystemapi-config">
-        <logger level="INFO" message='#["Getting list of stores by verification status"]' />
-		<db:select doc:name="Select" doc:id="af2d5cd1-4bb9-4200-8281-fbb8b3ce401c" config-ref="Database_Config">
-			<db:sql ><![CDATA[select * from storeData where verificationStatus=:verificationStatus;]]></db:sql>
-			<db:input-parameters ><![CDATA[#[{
+        <logger level="INFO" message="#[&quot;Getting list of stores by verification status&quot;]" />
+        <db:select doc:name="Select" doc:id="af2d5cd1-4bb9-4200-8281-fbb8b3ce401c" config-ref="Database_Config">
+            <db:sql><![CDATA[select * from storeData where verificationStatus=:verificationStatus;]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
 	verificationStatus:attributes.queryParams.verificationStatus
 }]]]></db:input-parameters>
+        </db:select>
+        <ee:transform doc:name="Transform Message" doc:id="8a7ef7c0-d145-4832-bfc4-a6a3c990ccc2">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\orders\buyer:ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" message='#["fetching orders for buyer by his userId"]' />
+		<db:select doc:name="getAllOrders" doc:id="932e7f51-6863-403f-8a5b-ade6197bc5d0" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from orders where userId=:userId]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userId:attributes.queryParams.userId
+}]]]></db:input-parameters>
 		</db:select>
-		<ee:transform doc:name="Transform Message" doc:id="8a7ef7c0-d145-4832-bfc4-a6a3c990ccc2" >
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;[]]" doc:name="allOrders" doc:id="3b68071d-8ac7-46e3-8b28-84dc91a95b52" variableName="allOrders" />
+		<foreach doc:name="For Each" doc:id="2dd2b737-8be9-438b-9bcd-e002627837d2" collection="#[payload]">
+			<db:select doc:name="getAllOrderItems" doc:id="f12dad21-cdd0-4855-ae30-10f3d955e1c3" config-ref="Database_Config" target="currentOrderItems">
+				<db:sql ><![CDATA[select * from orderItems where orderId=:orderId;]]></db:sql>
+				<db:input-parameters ><![CDATA[#[{
+	orderId:payload.orderId
+}]]]></db:input-parameters>
+			</db:select>
+			<set-variable value="#[%dw 2.0&#10;output applicaton/json&#10;---&#10;[]]" doc:name="allItems" doc:id="eb6cf34a-11a2-487b-b799-27a216d60b0a" variableName="allItems" />
+			<foreach doc:name="For Each" doc:id="1cfef028-087b-486c-8eaf-2ad8c429405b" collection="#[vars.currentOrderItems]">
+				<db:select doc:name="getCurrentProduct" doc:id="45ea988d-22a4-47af-bb37-15c7d1876f4b" config-ref="Database_Config" target="currentProduct">
+					<db:sql ><![CDATA[select * from products where productId=:productId;	]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	productId:payload.productId
+}]]]></db:input-parameters>
+				</db:select>
+				<set-variable value="#[%dw 2.0&#10;output applicaton/json&#10;---&#10;vars.allItems ++ [payload ++ {productName:vars.currentProduct[0].productName}]]" doc:name="allItems" doc:id="bf0fe168-257a-4ee3-a04f-217e0d207dc3" variableName="allItems"/>
+			</foreach>
+			<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;vars.allOrders ++ [payload ++ {orderItems:vars.allItems}]]" doc:name="allOrders" doc:id="f8de374d-1298-4f3b-a215-9470498f89a2" variableName="allOrders" />
+		</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="f3079bce-addb-43dd-863f-2529968ae608" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
-payload]]></ee:set-payload>
+vars.allOrders]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+    </flow>
+    <flow name="get:\orders\seller:ecommercesuitedatabasesystemapi-config">
+        <logger level="INFO" message="get:\orders\seller:ecommercesuitedatabasesystemapi-config" />
+		<db:select doc:name="getAllStoresForSeller" doc:id="6edef34a-51e3-4816-8b9e-58ade2aead1f" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from storeData where userId=:userId;	]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	userId:attributes.queryParams.userId
+}]]]></db:input-parameters>
+		</db:select>
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;[]]" doc:name="allStoreDetails" doc:id="06f54786-64ce-4186-93f5-fbd40b1d4df1" variableName="allStoreDetails" />
+		<foreach doc:name="For Each" doc:id="5072fb28-dac0-4b82-8858-bb261b65c028" collection="#[payload]">
+			<db:select doc:name="Select" doc:id="7a5f5ef3-f552-45c5-870c-ae6d5e4f744e" config-ref="Database_Config" target="currentOrderItems">
+				<db:sql ><![CDATA[select * from orderItems where storeId=:storeId;]]></db:sql>
+				<db:input-parameters ><![CDATA[#[{
+	storeId:payload.storeId
+}]]]></db:input-parameters>
+			</db:select>
+			<set-variable value="#[%dw 2.0&#10;output applicaton/json&#10;---&#10;[]]" doc:name="allItems" doc:id="25305fc3-2235-4e5e-8034-bb05bd360b29" variableName="allItems" />
+			<foreach doc:name="For Each" doc:id="e584954b-9ff4-4982-85d2-14e8aa7a53d7" collection="#[vars.currentOrderItems]">
+				<db:select doc:name="Select" doc:id="b5998586-4dcf-4a6f-a1bd-cebd2e258a4f" config-ref="Database_Config" target="currentProduct">
+					<db:sql ><![CDATA[select * from products where productId=:productId;]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	productId:payload.productId
+}]]]></db:input-parameters>
+				</db:select>
+				<set-variable value="#[%dw 2.0&#10;output applicaton/json&#10;---&#10;vars.allItems ++ [payload ++ {productName:vars.currentProduct[0].productName}]]" doc:name="allItems" doc:id="1a9d664e-4316-4896-93b4-f79a161f026d" variableName="allItems" />
+			</foreach>
+			<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;vars.allStoreDetails ++ [payload ++ {orderItems:vars.allItems}]]" doc:name="allStoreDetails" doc:id="d8347e5a-54ee-4d04-a210-ca5c72595b39" variableName="allStoreDetails" />
+		</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="cb26e1d3-12b6-4b70-93e0-c0b07c227430" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+vars.allStoreDetails]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
     </flow>

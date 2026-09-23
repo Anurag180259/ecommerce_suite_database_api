@@ -91,6 +91,16 @@ uses:
         paymentStatus:
           type: string
           enum: ["pending", "reversed", "success"]
+  /seller:
+    get:
+      queryParameters:
+        userId:
+          type: string
+  /buyer:
+    get:
+      queryParameters:
+        userId:
+          type: string
                 
       
 
