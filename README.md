@@ -95,7 +95,7 @@ db.database=DATABASE_NAME
 
 ### 3. Configure the Database
 
-Create the `ecommerce_suite` schema along with the required tables and stored procedures in MySQL before deploying the API. Use[Schema.sql](./Schema.sql) for database schema.
+Create the `ecommerce_suite` schema along with the required tables and stored procedures in MySQL before deploying the API. Use [Schema.sql](./Schema.sql) for database schema.
 
 **Tables:**
 - `users`
