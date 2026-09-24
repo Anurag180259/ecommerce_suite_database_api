@@ -945,7 +945,7 @@ GET /database/orderItems/storeId?storeId=ST-4f2a1c
 
 ---
 
-## Database Schema
+## Database Schema (Foreign Key Relationship)
 
 ```
 ecommerce_suite
