@@ -18,21 +18,21 @@ The **Database API** is the System API responsible for all persistence operation
 The Database API is one of two System APIs in the API-led connectivity model, sitting directly above the MySQL database layer.
 
 ```
-    AI Agent (via MCP Server)
+     AI Agent (via MCP Server)
               ↓
     Experience API Layer
               ↓
-         Process API
+      Process API Layer
               ↓
       System API Layer
     ┌──────────────────┐
     │                  │
     ▼                  ▼
 Database API     Mock Payment API
-(This Layer)
-    │
-    ▼
-MySQL Database
+(This Layer)               
+        │
+        ▼
+Data Layer (MySQL Database on Aiven Cloud)
 ```
 
 **Role of Database API:**
