@@ -162,5 +162,4 @@ and (p_productId is null or productId=p_productId);
 END //
 delimiter ;
 
-alter table users
-modify column pass varchar(60);
+
