@@ -9,7 +9,7 @@ create table users
     phoneNo varchar(10) unique,
     city varchar(20),
     roles varchar(10),
-    memType varchar(20) default "free",
+    memType varchar(20) default 'free',
     memExpiryDate date);
 
 select * from ecommerce_suite.users;
@@ -18,7 +18,7 @@ create table storeData
 	(storeName varchar(50) unique,
     storeId varchar(10) primary key,
     accountNumber varchar(20),
-    verificationStatus varchar(20) default "unverified",
+    verificationStatus varchar(20) default 'unverified',
     gstin varchar(20),
     accountHolderName varchar(50),
     userId varchar(10),
